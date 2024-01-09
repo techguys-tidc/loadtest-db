@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadtest-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadtest-db
+  template:
+    metadata:
+      labels:
+        app: loadtest-db
+    spec:
+      containers:
+      - name: loadtest-db
+        image: ghcr.io/techguys-tidc/loadtest-db:v0.0.2
+        env:
+        - name: DB_USER
+          value: root
+        - name: DB_PASS
+          value: mystrongpassword
+        - name: DB_NAME
+          value: test
+        - name: DB_HOST
+          value: my-release-mariadb-primary.db-loadtest.svc.cluster.local
+        - name: DB_PORT
+          value: "3306"
+        - name: QUERY
+          value: "SELECT * FROM user"
+        - name: GIN_MODE
+          value: release
+        - name: DB_MAXCON
+          value: "10"
+        - name: DB_MAXIDLE
+          value: "5"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadtest-db
+spec:
+  selector:
+    app: loadtest-db
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: loadtest-db
+spec:
+  rules:
+  - host: loadtest-db.poc.workisboring.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: loadtest-db
+            port:
+              number: 80

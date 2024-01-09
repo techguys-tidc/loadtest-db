@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
-	dbDriver = "mysql"
-	dbUser   = os.Getenv("DB_USER")
-	dbPass   = os.Getenv("DB_PASS")
-	dbName   = os.Getenv("DB_NAME")
-	dbHost   = os.Getenv("DB_HOST")
-	dbPort   = os.Getenv("DB_PORT")
-	query    = os.Getenv("QUERY")
+	dbDriver  = "mysql"
+	dbUser    = os.Getenv("DB_USER")
+	dbPass    = os.Getenv("DB_PASS")
+	dbName    = os.Getenv("DB_NAME")
+	dbHost    = os.Getenv("DB_HOST")
+	dbPort    = os.Getenv("DB_PORT")
+	query     = os.Getenv("QUERY")
+	dbMaxCon  = os.Getenv("DB_MAXCON")
+	dbMaxIdle = os.Getenv("DB_MAXIDLE")
 )
 
 func main() {
@@ -28,10 +31,19 @@ func main() {
 	}
 	defer db.Close()
 
-	db.SetMaxOpenConns(10) // Adjust based on your application's needs
+	maxCon, err := strconv.Atoi(dbMaxCon)
+	if err != nil {
+		maxCon = 10
+	}
+
+	maxIdle, err := strconv.Atoi(dbMaxIdle)
+	if err != nil {
+		maxIdle = 5
+	}
+	db.SetMaxOpenConns(maxCon) // Adjust based on your application's needs
 
 	// Set the maximum number of idle connections
-	db.SetMaxIdleConns(5) // Adjust based on your application's needs
+	db.SetMaxIdleConns(maxIdle) // Adjust based on your application's needs
 
 	// Initialize the Gin router
 	router := gin.Default()

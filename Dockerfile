@@ -17,7 +17,7 @@ FROM alpine
 COPY --from=0 /app/main /bin/main
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 5000
 
 CMD ["/bin/main"]
 
